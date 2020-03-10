@@ -49,6 +49,19 @@ static void add_libdir(struct file_names *fn, char *s)
 	}
 }
 
+static void add_lib(struct file_names *fn, char *s)
+{
+	char *dot;
+
+	fn->n_libs++;
+	fn->libs = realloc_type_n(fn->libs, const char *, fn->n_libs);
+	dot = strrchr(s, '.');
+	if (!dot || strcmp(dot, ".lib")) {
+		s = realloc_size(s, strlen(s) + 5);
+		strcat(s, ".lib");
+	}
+	fn->libs[fn->n_libs - 1] = s;
+}
 
 static bool pro_parse_line(const struct file *file,
     void *user, const char *line)
@@ -78,17 +91,7 @@ static bool pro_parse_line(const struct file *file,
 		break;
 	case pro_libs:
 		if (sscanf(line, "LibName%*u=%ms", &s) == 1) {
-			char *dot;
-
-			pro->fn->n_libs++;
-			pro->fn->libs = realloc_type_n(pro->fn->libs,
-			    const char *, pro->fn->n_libs);
-			dot = strrchr(s, '.');
-			if (!dot || strcmp(dot, ".lib")) {
-				s = realloc_size(s, strlen(s) + 5);
-				strcat(s, ".lib");
-			}
-			pro->fn->libs[pro->fn->n_libs - 1] = s;
+			add_lib(pro->fn, s);
 			return 1;
 		}
 		break;
@@ -125,6 +128,20 @@ struct file_names *pro_parse_file(struct file *file,
 		free_file_names(pro.fn);
 		free(pro.fn);
 		return NULL;
+	}
+
+	// Add the project cache
+	assert(pro.fn->pro);
+	{
+		char *s, *dot;
+		int l = strlen(pro.fn->pro);
+
+		s = (char *)malloc(l + 10 + 1);
+		memcpy(s, pro.fn->pro, l + 1);
+		dot = strrchr(s, '.');
+		assert(!strcmp(dot, ".pro"));
+		strcpy(dot, "-cache.lib");
+		add_lib(pro.fn, s);
 	}
 
 	if (!pro.fn->sch) {

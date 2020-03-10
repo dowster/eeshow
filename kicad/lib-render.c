@@ -716,6 +716,9 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 	const struct comp *comp;
 	const struct comp_alias *alias;
 
+	char *lib_sep = strchr(name, ':');
+	if (lib_sep) *lib_sep ='_';
+	
 	for (comp = lib->comps; comp; comp = comp->next) {
 		if (!strcmp(comp->name, name))
 			return comp;
