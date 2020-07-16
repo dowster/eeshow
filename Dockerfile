@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-RUN apt-get update &&\
+RUN DEBIAN_FRONTEND=noninteractive apt-get update &&\
     apt-get install -y build-essential libgtk-3-dev libcairo2-dev libgit2-dev transfig \
   imagemagick git bsdmainutils
 
